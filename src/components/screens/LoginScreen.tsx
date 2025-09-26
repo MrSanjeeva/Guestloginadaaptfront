@@ -1,15 +1,15 @@
-// src/components/screens/AuthScreen.js
-
 import React, { useState } from 'react';
 // Note: Ensure the path and component name for your logo are correct.
-import { AdaaptLogo } from '../AdaabtLogo';
+// If you don't have this component, you can replace it with a simple <img> or text.
+ import { AdaaptLogo } from '../AdaabtLogo';
 
-// ✅ UPDATED: Accept onGuestLogin as a prop
+// A placeholder for your logo if the import is not available.
+
+
 export default function AuthScreen({ onLogin, onGuestLogin, inviteToken }) {
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
 
   const handleLoginSuccess = () => {
-    // This function is for successful credential logins, no changes needed
     const event = new CustomEvent('show-toast', { 
       detail: { type: 'success', message: 'Login successful! Verifying account...' } 
     });
@@ -29,66 +29,77 @@ export default function AuthScreen({ onLogin, onGuestLogin, inviteToken }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 font-family-['PT_Serif']
-      bg-gradient-to-br from-blue-300 via-blue-200 to-blue-50 relative overflow-hidden">
-
-      {/* Decorative animated blobs */}
-      <div className="absolute -top-20 -left-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-      <div className="absolute -bottom-20 -right-20 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-      <div className="absolute top-1/2 left-1/3 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
-
-      {/* Auth Card */}
-      <div className="w-full max-w-md flex flex-col items-center relative z-10">
+    <div className="h-screen bg-gradient-to-b from-white via-[#EBF4FA] to-[#F6FAFD] flex items-center justify-center p-4 lg:p-8 font-family-['Inter']">
+      <div className="w-full max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
         
-        <div className="mt-6 mb-8">
-          <AdaaptLogo className="h-12 text-gray-800" />
-        </div>
+        {/* Left Side: Form Content */}
+        <div className="w-full md:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
+            <div className="mb-8">
+                <AdaaptLogo className="h-8 px-40" />
+            </div>
 
-        <div className="relative w-full bg-white/90 backdrop-blur-lg p-8 border border-blue-200 shadow-xl rounded-none overflow-hidden">
-            <div className="relative h-full">
+            <div className="relative h-full overflow-hidden">
                 {/* Login Form */}
                 <div 
-                    className={`transition-all duration-500 ease-in-out ${authMode === 'login' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full'}`}
-                    style={{ position: authMode === 'signup' ? 'absolute' : 'static', width: '100%' }}
+                    className={`transition-all duration-700 ease-in-out ${authMode === 'login' ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full'}`}
+                    style={{ position: authMode === 'signup' ? 'absolute' : 'relative', width: '100%', top: 0, left: 0 }}
                 >
-                    {/* ✅ UPDATED: Pass onGuestLogin down to the LoginView */}
-                    <LoginView 
-                      onLoginSuccess={handleLoginSuccess} 
-                      onGuestLogin={onGuestLogin}
-                      onSwitchToSignup={() => setAuthMode('signup')} 
-                    />
+                    {authMode === 'login' && (
+                        <LoginView 
+                          onLoginSuccess={handleLoginSuccess} 
+                          onGuestLogin={onGuestLogin}
+                          onSwitchToSignup={() => setAuthMode('signup')} 
+                        />
+                    )}
                 </div>
 
                 {/* Signup Form */}
                 <div 
-                    className={`transition-all duration-500 ease-in-out ${authMode === 'signup' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'}`}
-                    style={{ position: authMode === 'login' ? 'absolute' : 'static', width: '100%' }}
+                    className={`transition-all duration-700 ease-in-out ${authMode === 'signup' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'}`}
+                     style={{ position: authMode === 'login' ? 'absolute' : 'relative', width: '100%', top: 0, left: 0 }}
                 >
-                     <SignupView onSignupSuccess={handleSignupSuccess} onSwitchToLogin={() => setAuthMode('login')} />
+                    {authMode === 'signup' && (
+                        <SignupView 
+                            onSignupSuccess={handleSignupSuccess} 
+                            onSwitchToLogin={() => setAuthMode('login')} 
+                        />
+                    )}
                 </div>
             </div>
         </div>
-
-        <div className="mt-8 flex items-center justify-center gap-2 text-xs text-gray-500">
-            <a href="#" className="hover:underline hover:text-blue-600 transition-colors">
-              Terms of Service
-            </a>
-            <span>•</span>
-            <a href="#" className="hover:underline hover:text-blue-600 transition-colors">
-              Privacy Policy
-            </a>
+        
+        {/* Right Side: Image and Wavy Divider */}
+        <div className="hidden md:flex md:w-1/2 relative">
+             {/* Wavy SVG Divider */}
+            <svg
+                className="absolute top-0 left-0 h-full w-24 text-white"
+                preserveAspectRatio="none"
+                viewBox="0 0 100 100"
+                style={{ transform: 'translateX(-99%)' }} 
+            >
+                <path
+                d="M 100 0 C 50 20, 50 80, 100 100 L 100 0 Z"
+                fill="currentColor"
+                />
+            </svg>
+            
+            <div 
+                className="w-full h-full bg-cover bg-center" 
+                style={{backgroundImage: "url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80')"}}
+            >
+                <div className="w-full h-full bg-black bg-opacity-10"></div>
+            </div>
         </div>
       </div>
     </div>
   );
 }
 
-// ✅ UPDATED: De-structure onGuestLogin from props
+
 function LoginView({ onLoginSuccess, onGuestLogin, onSwitchToSignup }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -112,9 +123,7 @@ function LoginView({ onLoginSuccess, onGuestLogin, onSwitchToSignup }) {
     try {
       const response = await fetch('http://65.2.61.187:8000/api/v1/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString(),
       });
 
@@ -141,89 +150,70 @@ function LoginView({ onLoginSuccess, onGuestLogin, onSwitchToSignup }) {
 
   return (
     <>
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Sign in to adaapt</h1>
-        <p className="text-gray-600">Enter your credentials to access your dashboard</p>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Sign In</h1>
+        <p className="text-gray-600 text-sm">
+            Don't have an account?{' '}
+            <button type="button" onClick={onSwitchToSignup} className="font-semibold text-blue-600 hover:underline">
+                Create one now
+            </button>
+        </p>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="mb-4 p-3 bg-red-100 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="email-login" className="block text-sm font-medium text-gray-800 mb-2">Email address</label>
-          <input id="email-login" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500" required autoComplete="email" />
+          <label htmlFor="email-login" className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+          <input id="email-login" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required autoComplete="email" />
         </div>
         <div>
-          <label htmlFor="password-login" className="block text-sm font-medium text-gray-800 mb-2">Password</label>
+          <label htmlFor="password-login" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
           <div className="relative">
-            <input id="password-login" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="block w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500" required autoComplete="current-password" />
+            <input id="password-login" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="block w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required autoComplete="current-password" />
             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                {showPassword ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                )}
-              </svg>
+             {showPassword ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" /></svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" /></svg>
+              )}
             </button>
           </div>
         </div>
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center cursor-pointer">
-            <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-            <span className="ml-2 text-gray-600">Remember me</span>
-          </label>
-          <a href="#" className="font-medium text-blue-600 hover:text-blue-700 hover:underline">Forgot password?</a>
+        <div className="flex items-center justify-end text-sm">
+          <a href="#" className="font-medium text-blue-600 hover:underline">Forgot password?</a>
         </div>
         <div className="space-y-4 pt-2">
-            <button type="submit" disabled={!isFormValid || isLoading} className="w-full h-12 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-300 transition-colors">
-              {isLoading ? 'Please wait...' : 'Sign In'}
+            <button type="submit" disabled={!isFormValid || isLoading} className="w-full text-base h-12 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed transition-all duration-300">
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </button>
-
             <div className="relative flex items-center">
-                <div className="flex-grow border-t border-gray-300"></div>
-                <span className="flex-shrink mx-4 text-xs text-gray-500">OR</span>
-                <div className="flex-grow border-t border-gray-300"></div>
+                <div className="flex-grow border-t border-gray-200"></div>
+                <span className="flex-shrink mx-4 text-xs font-medium text-gray-400">OR</span>
+                <div className="flex-grow border-t border-gray-200"></div>
             </div>
-            
-            {/* ✅ This button now correctly calls the dedicated guest login function */}
             <button
                 type="button"
                 onClick={onGuestLogin}
-                className="w-full h-12 bg-white text-blue-600 font-medium rounded-lg border border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                className="w-full text-base h-12 bg-white text-gray-700 font-bold rounded-lg border-2 border-gray-300 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-all duration-300"
             >
               Continue as Guest
             </button>
         </div>
-         <p className="text-center text-sm text-gray-600 pt-2">
-            Don't have an account?{' '}
-            <button
-                type="button"
-                onClick={onSwitchToSignup}
-                className="font-medium text-blue-600 hover:text-blue-700 hover:underline"
-            >
-                Sign up
-            </button>
-        </p>
       </form>
     </>
   );
 }
 
-// No changes needed for SignupView component
+
 function SignupView({ onSignupSuccess, onSwitchToLogin }) {
   const [formData, setFormData] = useState({
-    email: '',
-    full_name: '',
-    organization: '',
-    department: '',
-    role: '',
-    password: '',
-    allowed_domains: '',
+    email: '', full_name: '', organization: '', department: '',
+    role: '', password: '', allowed_domains: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -241,20 +231,15 @@ function SignupView({ onSignupSuccess, onSwitchToLogin }) {
     const payload = {
         ...formData,
         allowed_domains: formData.allowed_domains.split(',').map(d => d.trim()).filter(d => d),
-        is_active: true,
-        is_verified: false,
-        is_superuser: false,
+        is_active: true, is_verified: false, is_superuser: false,
     };
     
     try {
         const response = await fetch('http://65.2.61.187:8000/api/v1/auth/register', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         });
-
         if (response.ok) {
             onSignupSuccess();
         } else {
@@ -271,44 +256,36 @@ function SignupView({ onSignupSuccess, onSwitchToLogin }) {
 
   return (
     <>
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Create an account</h1>
-        <p className="text-gray-600">Join the platform by filling out the form below</p>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Account</h1>
+        <p className="text-gray-600 text-sm">
+            Already a member?{' '}
+            <button type="button" onClick={onSwitchToLogin} className="font-semibold text-blue-600 hover:underline">
+                Log In
+            </button>
+        </p>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="mb-4 p-3 bg-red-100 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input name="full_name" value={formData.full_name} onChange={handleChange} placeholder="Full Name" required className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-            <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="Email Address" required className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-            <input name="organization" value={formData.organization} onChange={handleChange} placeholder="Organization" required className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-            <input name="department" value={formData.department} onChange={handleChange} placeholder="Department" required className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-            <input name="role" value={formData.role} onChange={handleChange} placeholder="Role" required className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-            <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder="Password" required className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+            <input name="full_name" value={formData.full_name} onChange={handleChange} placeholder="Full Name" required className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
+            <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="Email Address" required className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
+            <input name="organization" value={formData.organization} onChange={handleChange} placeholder="Organization" required className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
+            <input name="department" value={formData.department} onChange={handleChange} placeholder="Department" required className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
+            <input name="role" value={formData.role} onChange={handleChange} placeholder="Your Role" required className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
+            <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder="Password" required className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" />
         </div>
-        <div>
-            <input name="allowed_domains" value={formData.allowed_domains} onChange={handleChange} placeholder="Allowed Domains (comma-separated)" className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-        </div>
-
-        <button type="submit" disabled={isLoading} className="w-full h-12 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-300 transition-colors">
-          {isLoading ? 'Creating account...' : 'Sign Up'}
-        </button>
-
-        <p className="text-center text-sm text-gray-600 pt-2">
-            Already have an account?{' '}
-            <button
-                type="button"
-                onClick={onSwitchToLogin}
-                className="font-medium text-blue-600 hover:text-blue-700 hover:underline"
-            >
-                Sign in instead
+        <div className="pt-2">
+            <button type="submit" disabled={isLoading} className="w-full text-base h-12 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed transition-all duration-300">
+              {isLoading ? 'Creating Account...' : 'Sign Up'}
             </button>
-        </p>
+        </div>
       </form>
     </>
   );

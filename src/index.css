@@ -455,7 +455,7 @@
 
   body {
     margin: 0;
-    font-family: 'PT Serif';
+    font-family: "Figtree";
     font-weight: var(--font-body-weight);
     font-size: var(--font-body-size);
     background: var(--color-bg);

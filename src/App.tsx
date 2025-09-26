@@ -1,10 +1,7 @@
-// src/App.js
-
 import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from './components/DashboardLayout';
 import { Dashboard } from './components/screens/Dashboard';
 import { DiscoverScreen } from './components/screens/DiscoverScreen';
-// Make sure this path is correct for your project structure
 import AuthScreen from './components/screens/LoginScreen';
 import { QuickStartScreen } from './components/screens/QuickStartScreen';
 import { DatasetSelectScreen } from './components/screens/DatasetSelectScreen';
@@ -16,7 +13,6 @@ import { Toaster } from './components/ui/sonner';
 import { toast } from 'sonner';
 import apiClient from './api/apiClient';
 
-// Onboarding Flow Types & Interfaces
 type OnboardingStep = 'auth' | 'quickstart' | 'dataset-select' | 'home-ask-ai' | 'results-storyboard' | 'complete';
 type Screen = 'dashboard' | 'discover' | 'insights' | 'data-sources' | 'alerts' | 'data-management' | 'settings' | 'results-analysis';
 
@@ -27,7 +23,6 @@ interface PrototypeVariables {
   is_admin: boolean;
 }
 
-// Helper Components (no changes needed here)
 const CleanLoader = ({ message = 'Loading...' }: { message?: string }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center">
     <div className="absolute inset-0 bg-black/50"></div>
@@ -38,26 +33,40 @@ const CleanLoader = ({ message = 'Loading...' }: { message?: string }) => (
   </div>
 );
 
-const ScreenTransition = ({ children, isVisible, direction = 'right' }: { children: React.ReactNode; isVisible: boolean; direction?: 'left' | 'right' | 'up' | 'down'; }) => {
+const ScreenTransition = ({
+  children,
+  isVisible,
+  direction = 'right',
+}: {
+  children: React.ReactNode;
+  isVisible: boolean;
+  direction?: 'left' | 'right' | 'up' | 'down';
+}) => {
   const getTransform = () => {
     switch (direction) {
-      case 'left': return 'translateX(-20px)';
-      case 'right': return 'translateX(20px)';
-      case 'up': return 'translateY(-20px)';
-      case 'down': return 'translateY(20px)';
-      default: return 'translateX(20px)';
+      case 'left':
+        return 'translateX(-20px)';
+      case 'right':
+        return 'translateX(20px)';
+      case 'up':
+        return 'translateY(-20px)';
+      case 'down':
+        return 'translateY(20px)';
+      default:
+        return 'translateX(20px)';
     }
   };
   return (
-    <div className={`transition-all duration-300 ease-out ${isVisible ? 'opacity-100 transform-none' : 'opacity-0'}`} style={{ transform: isVisible ? 'none' : getTransform() }}>
+    <div
+      className={`transition-all duration-300 ease-out ${isVisible ? 'opacity-100 transform-none' : 'opacity-0'}`}
+      style={{ transform: isVisible ? 'none' : getTransform() }}
+    >
       {children}
     </div>
   );
 };
 
-
 export default function App() {
-  // State hooks
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isFirstLogin, setIsFirstLogin] = useState(true);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -66,13 +75,17 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Loading...');
   const [transitionDirection, setTransitionDirection] = useState<'left' | 'right'>('right');
-  const [prototypeVars, setPrototypeVars] = useState<PrototypeVariables>({ current_dataset: '', query_text: '', selected_user: '', is_admin: true });
+  const [prototypeVars, setPrototypeVars] = useState<PrototypeVariables>({
+    current_dataset: '',
+    query_text: '',
+    selected_user: '',
+    is_admin: true,
+  });
   const [currentScreen, setCurrentScreen] = useState<Screen>('dashboard');
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
 
-  // Check authentication on app load
   useEffect(() => {
     checkAuthenticationStatus();
   }, []);
@@ -85,20 +98,19 @@ export default function App() {
     if (token && tokenExpiry && new Date().getTime() < parseInt(tokenExpiry)) {
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setIsAuthenticated(true);
-      
+
       if (hasCompletedSetup === 'true') {
         setIsFirstLogin(false);
         setOnboardingStep('complete');
       } else {
         setIsFirstLogin(true);
-        setOnboardingStep('quickstart'); 
+        setOnboardingStep('quickstart');
       }
     }
-    
+
     setIsInitialLoading(false);
   };
 
-  // Setup toast listener and check for invite token
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('invite');
@@ -119,7 +131,7 @@ export default function App() {
     setIsLoading(true);
     setLoadingMessage(message);
     setTransitionDirection(direction);
-    
+
     setTimeout(() => {
       setPreviousStep(onboardingStep);
       setOnboardingStep(newStep);
@@ -133,74 +145,103 @@ export default function App() {
 
     const token = localStorage.getItem('accessToken');
     if (token) {
-        apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } else {
-        toast.error("Authentication error. Token not found.");
-        setIsLoading(false);
-        return;
+      toast.error('Authentication error. Token not found.');
+      setIsLoading(false);
+      return;
     }
 
     try {
-        const { data: userData } = await apiClient.get('/auth/me');
-        const isSuperuser = userData.is_superuser;
+      const { data: userData } = await apiClient.get('/auth/me');
+      const isSuperuser = userData.is_superuser;
 
-        setPrototypeVars(prev => ({ ...prev, is_admin: isSuperuser }));
-        setIsAuthenticated(true);
-        
-        if (isSuperuser && isFirstLogin) {
-            transitionToStep('quickstart', 'right', 'Setting up your workspace...');
-        } else if (!isSuperuser && isFirstLogin) {
-            localStorage.setItem('hasCompletedSetup', 'true');
-            transitionToStep('home-ask-ai', 'right', 'Preparing your workspace...');
-        } else {
-            localStorage.setItem('hasCompletedSetup', 'true');
-            transitionToStep('complete', 'right', 'Loading your dashboard...');
-        }
+      setPrototypeVars((prev) => ({ ...prev, is_admin: isSuperuser }));
+      setIsAuthenticated(true);
+
+      if (isSuperuser && isFirstLogin) {
+        transitionToStep('quickstart', 'right', 'Setting up your workspace...');
+      } else if (!isSuperuser && isFirstLogin) {
+        localStorage.setItem('hasCompletedSetup', 'true');
+        transitionToStep('home-ask-ai', 'right', 'Preparing your workspace...');
+      } else {
+        localStorage.setItem('hasCompletedSetup', 'true');
+        transitionToStep('complete', 'right', 'Loading your dashboard...');
+      }
     } catch (error) {
-        console.error("Failed to fetch user data after login:", error);
-        toast.error('Could not retrieve your profile. Please log in again.');
-        handleLogout();
+      console.error('Failed to fetch user data after login:', error);
+      toast.error('Could not retrieve your profile. Please log in again.');
+      handleLogout();
     }
   };
-  
-  // ✅ NEW: Function to handle guest login without tokens
-  const handleGuestLogin = () => {
-    setIsLoading(true);
-    setLoadingMessage('Continuing as guest...');
-    
-    setTimeout(() => {
-        // Set isAuthenticated to true to bypass the login screen UI logic.
-        setIsAuthenticated(true);
-        
-        // Assume guests don't need the multi-step onboarding.
-        localStorage.setItem('hasCompletedSetup', 'true');
-        
-        // Directly transition to the final state. No token check needed.
-        setOnboardingStep('complete'); 
-        
-        setIsLoading(false);
-        toast.info("Welcome, Guest!");
-    }, 800);
-  };
 
+  // ✅ UPDATED: Guest login via API with fixed credentials
+  const handleGuestLogin = async () => {
+    setIsLoading(true);
+    setLoadingMessage('Signing in as Guest...');
+
+    const formData = new URLSearchParams();
+    formData.append('grant_type', 'password');
+    formData.append('username', 'guestuser@adaapt.ai');
+    formData.append('password', 'Devesh1234');
+    formData.append('scope', '');
+    formData.append('client_id', '');
+    formData.append('client_secret', '');
+
+    try {
+      const response = await fetch('http://65.2.61.187:8000/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString(),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('accessToken', data.access_token);
+        localStorage.setItem('refreshToken', data.refresh_token);
+        const expiryTime = new Date().getTime() + data.expires_in * 1000;
+        localStorage.setItem('tokenExpiry', expiryTime.toString());
+
+        // Set Authorization header
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access_token}`;
+
+        setIsAuthenticated(true);
+        localStorage.setItem('hasCompletedSetup', 'true');
+
+        // ✅ Go straight to Ask AI (skip onboarding, even if superuser)
+        setOnboardingStep('complete');
+        setCurrentScreen('dashboard');
+
+        toast.info('Welcome, Guest!');
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.detail || 'Guest login failed.');
+      }
+    } catch (err) {
+      console.error('Guest login failed:', err);
+      toast.error('Network error during guest login.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     setIsLoading(true);
     setLoadingMessage('Signing you out...');
-    
+
     setTimeout(async () => {
       try {
         await apiClient.post('/auth/logout');
       } catch (error) {
         console.log('Logout API call failed:', error);
       }
-      
+
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('tokenExpiry');
       localStorage.removeItem('hasCompletedSetup');
       delete apiClient.defaults.headers.common['Authorization'];
-      
+
       setIsAuthenticated(false);
       setOnboardingStep('auth');
       setIsFirstLogin(true);
@@ -215,26 +256,26 @@ export default function App() {
     console.log('Quick Start setup complete:', data);
     localStorage.setItem('hasCompletedSetup', 'true');
     setIsFirstLogin(false);
-    transitionToStep('home-ask-ai', 'right', 'Setting up Ask AI...')
+    transitionToStep('home-ask-ai', 'right', 'Setting up Ask AI...');
   };
-  
+
   const handleDatasetSelectComplete = (dataset: string, user?: string) => {
-    setPrototypeVars(prev => ({ ...prev, current_dataset: dataset, selected_user: user || prev.selected_user }));
+    setPrototypeVars((prev) => ({ ...prev, current_dataset: dataset, selected_user: user || prev.selected_user }));
     transitionToStep('home-ask-ai', 'right', 'Setting up Ask AI...');
   };
 
   const handleDatasetSelectSkip = () => {
-    setPrototypeVars(prev => ({ ...prev, current_dataset: prev.current_dataset || 'Sales — Sample' }));
+    setPrototypeVars((prev) => ({ ...prev, current_dataset: prev.current_dataset || 'Sales — Sample' }));
     transitionToStep('home-ask-ai', 'right', 'Preparing workspace...');
   };
 
   const handleAskAIQuery = (query: string) => {
-    setPrototypeVars(prev => ({ ...prev, query_text: query }));
-    
+    setPrototypeVars((prev) => ({ ...prev, query_text: query }));
+
     if (query.trim()) {
       setIsLoading(true);
       setLoadingMessage('Analyzing your query...');
-      
+
       setTimeout(() => {
         setCurrentScreen('results-analysis');
         setIsLoading(false);
@@ -252,43 +293,45 @@ export default function App() {
   const handleCompleteOnboarding = () => {
     transitionToStep('complete', 'right', 'Finalizing setup...');
     setIsFirstLogin(false);
-    
   };
 
   const screenMap: Record<string, Screen> = {
     'ask-ai': 'dashboard',
-    'discover': 'discover',
-    'insights': 'insights',
+    discover: 'discover',
+    insights: 'insights',
     'data-sources': 'data-sources',
-    'alerts': 'alerts',
+    alerts: 'alerts',
     'data-management': 'data-management',
-    'settings': 'settings'
+    settings: 'settings',
   };
 
   const renderScreen = () => {
     switch (currentScreen) {
-      case 'dashboard': return <Dashboard />;
-      case 'discover': return <DiscoverScreen />;
+      case 'dashboard':
+        return <Dashboard />;
+      case 'discover':
+        return <DiscoverScreen />;
       case 'results-analysis':
         return (
           <ResultsAnalysisScreen
             query={prototypeVars.query_text}
             currentDataset={prototypeVars.current_dataset}
-            teamScope={"Sales"}
+            teamScope={'Sales'}
             onBack={() => {
               setCurrentScreen('dashboard');
               setOnboardingStep('home-ask-ai');
             }}
           />
         );
-      default: return <Dashboard />;
+      default:
+        return <Dashboard />;
     }
   };
 
   const handleNavItemClick = (navItem: string) => {
     const screen = screenMap[navItem] || 'dashboard';
     setCurrentScreen(screen);
-    toast.success(`Mapsd to ${navItem.replace('-', ' ')}`);
+    toast.success(`Mapped to ${navItem.replace('-', ' ')}`);
   };
 
   if (isInitialLoading) {
@@ -299,45 +342,36 @@ export default function App() {
     );
   }
 
-  // --- RENDER LOGIC ---
   if (!isAuthenticated || onboardingStep !== 'complete') {
     const renderOnboardingStep = () => {
       const stepIndex = ['auth', 'quickstart', 'dataset-select', 'home-ask-ai'].indexOf(onboardingStep);
       const previousIndex = ['auth', 'quickstart', 'dataset-select', 'home-ask-ai'].indexOf(previousStep);
       const direction = stepIndex > previousIndex ? 'right' : 'left';
-  
+
       switch (onboardingStep) {
         case 'auth':
           return (
             <ScreenTransition isVisible={!isLoading} direction={direction}>
-              {/* ✅ UPDATED: Pass the new handleGuestLogin function as a prop */}
-              <AuthScreen 
-                onLogin={handleLogin} 
-                onGuestLogin={handleGuestLogin} 
-                inviteToken={inviteToken} 
-              />
+              <AuthScreen onLogin={handleLogin} onGuestLogin={handleGuestLogin} inviteToken={inviteToken} />
             </ScreenTransition>
           );
         case 'quickstart':
           return (
             <ScreenTransition isVisible={!isLoading} direction={direction}>
-              <QuickStartScreen 
-                onSetupComplete={handleSetupFinished}
-                onLogout={handleLogout}
-              />
+              <QuickStartScreen onSetupComplete={handleSetupFinished} onLogout={handleLogout} />
             </ScreenTransition>
           );
         case 'dataset-select':
           return (
             <ScreenTransition isVisible={!isLoading} direction={direction}>
-              <DatasetSelectScreen 
+              <DatasetSelectScreen
                 preselectedDataset={prototypeVars.current_dataset}
                 onComplete={handleDatasetSelectComplete}
                 onSkip={handleDatasetSelectSkip}
               />
             </ScreenTransition>
           );
-        case 'home-ask-ai': 
+        case 'home-ask-ai':
           return (
             <ScreenTransition isVisible={!isLoading} direction={direction}>
               <HomeAskAIScreen onLogout={handleLogout} />
@@ -346,28 +380,21 @@ export default function App() {
         default:
           return (
             <ScreenTransition isVisible={!isLoading} direction="right">
-               {/* ✅ UPDATED: Also pass handleGuestLogin here */}
-              <AuthScreen 
-                onLogin={handleLogin} 
-                onGuestLogin={handleGuestLogin} 
-                inviteToken={inviteToken} 
-              />
+              <AuthScreen onLogin={handleLogin} onGuestLogin={handleGuestLogin} inviteToken={inviteToken} />
             </ScreenTransition>
           );
       }
     };
-  
+
     return (
       <div className="bg-gray-50 min-h-screen">
-        <div className="relative z-10">
-          {renderOnboardingStep()}
-        </div>
+        <div className="relative z-10">{renderOnboardingStep()}</div>
         {isLoading && <CleanLoader message={loadingMessage} />}
         <Toaster position="top-right" />
       </div>
     );
   }
-  
+
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="relative z-10">
@@ -375,7 +402,7 @@ export default function App() {
           <HomeAskAIScreen onLogout={handleLogout} />
         </ScreenTransition>
       </div>
-  
+
       {isLoading && <CleanLoader message={loadingMessage} />}
       <Toaster position="top-right" />
     </div>

@@ -436,7 +436,7 @@ export const LeadershipInsights = () => {
   const [dateFilter, setDateFilter] = useState('monthly');
 
   return (
-    <div className="overflow-y-auto bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+    <div className="overflow-y-auto bg-[#fffff0] p-4">
       <div className="mb-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div>

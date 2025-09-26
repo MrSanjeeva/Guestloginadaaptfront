@@ -1,16 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { AdaaptLogo } from '../AdaabtLogo';
-import apiClient from "../../api/apiClient"; // Import the real axios client
+import apiClient from "../../api/apiClient";
 
 // --- INTERFACES ---
-
-// Represents the structure of a Department/Domain from the API
 interface Department {
     id: string;
     display_name: string;
     description: string;
-    // Add other fields from the API response if needed
 }
 
 interface SetupData {
@@ -123,7 +120,6 @@ export function QuickStartScreen({ onSetupComplete, onLogout }: QuickStartScreen
             setError('A department with this name already exists.');
             return;
         }
-        // Also validate that roles are provided
         if (!newDepartmentInput.allowed_roles.trim()) {
             setError('Please provide at least one role for the department.');
             return;
@@ -137,7 +133,7 @@ export function QuickStartScreen({ onSetupComplete, onLogout }: QuickStartScreen
             display_name: newDepartmentInput.display_name.trim(),
             description: newDepartmentInput.description.trim() || `Domain for ${newDepartmentInput.display_name.trim()}`,
             is_active: true,
-            embedding_model: null ,
+            embedding_model: null,
             chunk_size: 1000,
             chunk_overlap: 200,
             allowed_roles: newDepartmentInput.allowed_roles.split(',').map(role => role.trim()).filter(Boolean),
@@ -145,18 +141,9 @@ export function QuickStartScreen({ onSetupComplete, onLogout }: QuickStartScreen
 
         try {
             const response = await apiClient.post('/knowledge-base/domains', requestBody);
-
-            // Reset the form fields
-            setNewDepartmentInput({
-                display_name: '',
-                description: '',
-                allowed_roles: '',
-            });
-
-            // Re-fetch all domains to get the updated list including the new one
             const domainsResponse = await apiClient.get('/knowledge-base/domains');
             setExistingDomains(domainsResponse.data);
-
+            setNewDepartmentInput({ display_name: '', description: '', allowed_roles: '' });
         } catch (err: any) {
             console.error('Failed to create department:', err);
             setError(getErrorMessage(err));
@@ -178,7 +165,6 @@ export function QuickStartScreen({ onSetupComplete, onLogout }: QuickStartScreen
     const handleConfirmStep1 = () => {
         if (existingDomains.length > 0) {
             setIsStep1Complete(true);
-            // Set the first available domain as selected by default
             if (existingDomains[0]) {
                 setSelectedDepartment(existingDomains[0].display_name);
                 setSelectedDomainId(existingDomains[0].id);
@@ -188,7 +174,6 @@ export function QuickStartScreen({ onSetupComplete, onLogout }: QuickStartScreen
 
     const handleDepartmentSelect = (displayName: string) => {
         setSelectedDepartment(displayName);
-        // Find the corresponding ID from existing domains
         const selectedDomain = existingDomains.find(d => d.display_name === displayName);
         if (selectedDomain) {
             setSelectedDomainId(selectedDomain.id);
@@ -198,7 +183,7 @@ export function QuickStartScreen({ onSetupComplete, onLogout }: QuickStartScreen
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
             setSelectedFile(event.target.files[0]);
-            setUploadSuccess(false); // Reset upload success when new file is selected
+            setUploadSuccess(false);
         }
     };
 
@@ -210,17 +195,15 @@ export function QuickStartScreen({ onSetupComplete, onLogout }: QuickStartScreen
 
         const formData = new FormData();
         formData.append('domain_id', selectedDomainId);
-        formData.append('title', ''); // Send empty value as specified
-        formData.append('author', ''); // Send empty value as specified  
+        formData.append('title', '');
+        formData.append('author', '');
         formData.append('language', '');
         formData.append('file', selectedFile);
 
         try {
             const response = await apiClient.post('/ingestion/upload', formData);
-
             console.log('File uploaded successfully:', response.data);
             setUploadSuccess(true);
-
         } catch (err: any) {
             console.error('Failed to upload file:', err);
             setError(getErrorMessage(err));
@@ -229,20 +212,15 @@ export function QuickStartScreen({ onSetupComplete, onLogout }: QuickStartScreen
         }
     };
 
-    // ----- THIS IS THE CORRECTED FUNCTION -----
     const handleFinishSetup = async () => {
         if (!canFinishSetup || isSubmitting) return;
-    
+
         setIsSubmitting(true);
         setError('');
-    
-        // Filter for invites that have an email entered.
+
         const validInvites = invites.filter(invite => invite.email.trim() !== '');
-    
-        // The 'departments' are the domains we've been tracking in the 'existingDomains' state.
         const departments = existingDomains;
-    
-        // Call the prop function passed from App.tsx with the correct data
+
         onSetupComplete({
             departments,
             invites: validInvites,
@@ -252,8 +230,12 @@ export function QuickStartScreen({ onSetupComplete, onLogout }: QuickStartScreen
             }
         });
     };
-    // ------------------------------------------
 
+    // NEW: Handle Skip button click
+    const handleSkipSetup = () => {
+        // Directly call onSetupComplete without data to skip the setup
+        onSetupComplete({} as SetupData);
+    };
 
     // --- RENDER LOGIC ---
     const canFinishSetup = isStep1Complete && !!selectedDepartment && !!selectedFile && uploadSuccess;
@@ -278,10 +260,12 @@ export function QuickStartScreen({ onSetupComplete, onLogout }: QuickStartScreen
                         <AdaaptLogo className="h-7" />
                     </div>
                     <div className="flex items-center gap-4">
-                        <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                            <span className="text-sm font-medium text-gray-600">JD</span>
-                        </div>
-                        <button className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors" title="Help">?</button>
+                        <button
+                            onClick={handleSkipSetup}
+                            className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            Skip
+                        </button>
                         <button
                             onClick={onLogout}
                             className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
@@ -325,7 +309,6 @@ export function QuickStartScreen({ onSetupComplete, onLogout }: QuickStartScreen
                         )}
 
                         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-8">
-
                             {/* STEP 1 CARD (The Form) */}
                             <div className="bg-white rounded-md border border-blue-300 p-6 sm:p-8 shadow-xl h-[72vh] overflow-y-auto">
                                 <div className="flex items-start gap-4 mb-6">
