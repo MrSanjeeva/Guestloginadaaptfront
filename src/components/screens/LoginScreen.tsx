@@ -29,7 +29,7 @@ export default function AuthScreen({ onLogin, onGuestLogin, inviteToken }) {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-b from-white via-[#EBF4FA] to-[#F6FAFD] flex items-center justify-center p-4 lg:p-8 font-family-['Inter']">
+    <div className="h-screen bg-gradient-to-b from-white via-[#EBF4FA] to-[#F6FAFD] flex items-center justify-center p-4 lg:p-8 font-figtree">
       <div className="w-full max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
         
         {/* Left Side: Form Content */}
@@ -121,7 +121,7 @@ function LoginView({ onLoginSuccess, onGuestLogin, onSwitchToSignup }) {
     formData.append('client_secret', '');
 
     try {
-      const response = await fetch('http://65.2.61.187:8000/api/v1/auth/login', {
+      const response = await fetch('http://adaapt-production-alb-680487289.ap-south-1.elb.amazonaws.com/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString(),
