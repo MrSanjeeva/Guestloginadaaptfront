@@ -4,7 +4,7 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm'; // <-- 1. IMPORT THE PLUGIN
+import remarkGfm from 'remark-gfm';
 
 // --- ADDED FOR LOADING BAR ANIMATION ---
 const loadingBarStyle = `
@@ -38,7 +38,7 @@ export interface Message {
   content: string | AIMessageData;
 }
 
-// UserMessage component - Themed & UPDATED WITH FONT
+// UserMessage component
 const UserMessage: React.FC<{ text: string }> = ({ text }) => (
   <div className="flex justify-end">
     <div className="rounded-lg rounded-br-none py-3 px-4 max-w-lg shadow-md bg-[#4A7FA7] text-[#F6FAFD] font-figtree">
@@ -47,13 +47,33 @@ const UserMessage: React.FC<{ text: string }> = ({ text }) => (
   </div>
 );
 
-// AIMessage component - UPDATED WITH FONT AND CARD STYLING REMOVED
+// AIMessage component - MODIFIED TO EXTRACT IFRAME URL
 const AIMessage: React.FC<{ data: AIMessageData; isStreaming?: boolean }> = ({ data, isStreaming = false }) => {
   const [isIframeLoading, setIsIframeLoading] = React.useState(true);
 
+  // --- START: MODIFICATION FOR DASHBOARD URL EXTRACTION ---
+  // Create a mutable copy to process and extract the dashboard URL
+  const processedData = { ...data };
+  // UPDATED REGEX: Matches both "View Interactive Dashboard" and "Click here to view your interactive dashboard"
+  const dashboardUrlRegex = /\[(?:View Interactive Dashboard|Click here to view your interactive dashboard)\]\(([^)]+)\)/;
+
+
+  if (processedData.answer && typeof processedData.answer === 'string') {
+    const match = processedData.answer.match(dashboardUrlRegex);
+
+    if (match && match[1]) {
+      // 1. Extract the URL and assign it to the dashboardUrl property
+      processedData.dashboardUrl = match[1];
+
+      // 2. Remove the markdown link line from the answer to prevent displaying it twice
+      processedData.answer = processedData.answer.replace(match[0], '').trim();
+    }
+  }
+  // --- END: MODIFICATION FOR DASHBOARD URL EXTRACTION ---
+
   const handleDownload = () => {
-    if (!data.answer) return;
-    const blob = new Blob([data.answer], { type: 'text/markdown;charset=utf-8' });
+    if (!processedData.answer) return;
+    const blob = new Blob([processedData.answer], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -64,12 +84,12 @@ const AIMessage: React.FC<{ data: AIMessageData; isStreaming?: boolean }> = ({ d
     URL.revokeObjectURL(url);
   };
 
-  if (data.error) {
+  if (processedData.error) {
     return (
       <div className="flex justify-start">
         <div className="rounded-lg rounded-bl-none py-3 px-4 max-w-lg shadow-md bg-red-100 text-red-800 border border-red-200 font-figtree">
           <p className="font-medium">Error:</p>
-          <p>{data.error}</p>
+          <p>{processedData.error}</p>
         </div>
       </div>
     );
@@ -88,66 +108,39 @@ const AIMessage: React.FC<{ data: AIMessageData; isStreaming?: boolean }> = ({ d
       ) : (
         <pre className="bg-[#F6FAFD] p-3 rounded-md overflow-x-auto text-sm" {...props} />
       ),
-    
-    // --- ENHANCED TABLE STYLING ---
     table: ({ node, ...props }) => (
-      // Container provides rounded corners, a border, and clips the inner table.
       <div className="my-4 overflow-hidden rounded-lg border border-[#B3CFE5]/50">
         <table className="min-w-full text-sm" {...props} />
       </div>
     ),
-    thead: ({ node, ...props }) => (
-      // Table header with a distinct background color.
-      <thead className="bg-[#F6FAFD]" {...props} />
-    ),
-    tbody: ({ node, ...props }) => (
-      // Table body with row dividers.
-      <tbody className="divide-y divide-[#B3CFE5]/50 bg-white" {...props} />
-    ),
-    tr: ({ node, ...props }) => (
-      // Table row with a subtle hover effect.
-      <tr className="hover:bg-[#F6FAFD]/70" {...props} />
-    ),
+    thead: ({ node, ...props }) => <thead className="bg-[#F6FAFD]" {...props} />,
+    tbody: ({ node, ...props }) => <tbody className="divide-y divide-[#B3CFE5]/50 bg-white" {...props} />,
+    tr: ({ node, ...props }) => <tr className="hover:bg-[#F6FAFD]/70" {...props} />,
     th: ({ node, ...props }) => (
-      // Header cells with padding, and distinct text styling (uppercase, bold).
-      <th
-        className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#1A3D63]"
-        {...props}
-      />
+      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#1A3D63]" {...props} />
     ),
-    td: ({ node, ...props }) => (
-      // Standard data cells with padding and vertical alignment.
-      <td className="px-4 py-3 align-middle text-[#1A3D63]" {...props} />
-    ),
-    // --- END OF ENHANCED TABLE STYLING ---
+    td: ({ node, ...props }) => <td className="px-4 py-3 align-middle text-[#1A3D63]" {...props} />,
   };
 
   return (
     <div className="flex justify-start">
-      {/* --- MODIFIED: Removed card styling (border, shadow, bg-white, padding) to render directly on the background --- */}
       <div className="relative max-w-5xl w-full space-y-4 text-[#1A3D63] font-figtree">
-        
-        {/* --- REVISED RENDER LOGIC WITH LOADING BAR --- */}
-        {data.answer ? (
+        {processedData.answer ? (
           <div className="prose prose-sm max-w-none">
-            <ReactMarkdown
-              components={markdownComponents}
-              remarkPlugins={[remarkGfm]} // <-- 2. ADD THE PLUGIN HERE
-            >
-              {data.answer}
+            <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>
+              {processedData.answer}
             </ReactMarkdown>
           </div>
         ) : (
           <div>
             <p className="font-mono text-sm text-[#4A7FA7] truncate">
-              {data.thinkingSteps || 'Thinking...'}
+              {processedData.thinkingSteps || 'Thinking...'}
             </p>
           </div>
         )}
 
-        {data.dashboardUrl && (
-          // --- MODIFIED: Removed border and background from iframe container ---
-          <div className="relative rounded-lg overflow-hidden h-[500px] mt-4">
+        {processedData.dashboardUrl && (
+          <div className="relative rounded-lg overflow-hidden h-[500px] mt-4 border border-gray-200">
             {isIframeLoading && (
               <div className="absolute inset-0 flex items-center justify-center text-sm text-[#4A7FA7]">
                 <AutorenewIcon className="animate-spin mr-2" />
@@ -155,7 +148,7 @@ const AIMessage: React.FC<{ data: AIMessageData; isStreaming?: boolean }> = ({ d
               </div>
             )}
             <iframe
-              src={data.dashboardUrl}
+              src={processedData.dashboardUrl}
               title="Embedded Interactive Dashboard"
               className={`w-full h-full border-0 transition-opacity duration-300 ${isIframeLoading ? 'opacity-0' : 'opacity-100'}`}
               sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
@@ -165,13 +158,11 @@ const AIMessage: React.FC<{ data: AIMessageData; isStreaming?: boolean }> = ({ d
           </div>
         )}
 
-        {/* Render the bottom bar only if there's a final answer or dashboard */}
-        {(data.answer || data.dashboardUrl) && (
-            // --- MODIFIED: Removed top border and padding for a cleaner integration ---
+        {(processedData.answer || processedData.dashboardUrl) && (
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              {data.dashboardUrl && (
+              {processedData.dashboardUrl && (
                 <a
-                  href={data.dashboardUrl}
+                  href={processedData.dashboardUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 font-semibold py-2 px-3 rounded-lg text-xs transition-colors bg-[#B3CFE5] text-[#0A1931] hover:bg-[#4A7FA7] hover:text-[#F6FAFD]"
@@ -180,7 +171,7 @@ const AIMessage: React.FC<{ data: AIMessageData; isStreaming?: boolean }> = ({ d
                   Open Dashboard in New Tab
                 </a>
               )}
-              {data.answer && (
+              {processedData.answer && (
                 <button
                   onClick={handleDownload}
                   className="inline-flex items-center gap-2 font-semibold py-2 px-3 rounded-lg text-xs transition-colors bg-white text-[#4A7FA7] border border-[#B3CFE5] hover:bg-[#F6FAFD]"
@@ -192,11 +183,11 @@ const AIMessage: React.FC<{ data: AIMessageData; isStreaming?: boolean }> = ({ d
             </div>
         )}
 
-        {data.domains_searched && data.domains_searched.length > 0 && (
+        {processedData.domains_searched && processedData.domains_searched.length > 0 && (
           <div className="pt-2">
             <h4 className="font-semibold text-sm text-[#1A3D63]">Domains Searched:</h4>
             <div className="flex flex-wrap gap-2 mt-1">
-              {data.domains_searched.map((domain) => (
+              {processedData.domains_searched.map((domain) => (
                 <span key={domain} className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-[#B3CFE5]/50 text-[#1A3D63]">
                   {domain}
                 </span>
@@ -204,12 +195,11 @@ const AIMessage: React.FC<{ data: AIMessageData; isStreaming?: boolean }> = ({ d
             </div>
           </div>
         )}
-        {data.sources && data.sources.length > 0 && (
+        {processedData.sources && processedData.sources.length > 0 && (
           <div className="pt-2">
             <h4 className="font-semibold text-sm text-[#1A3D63]">Sources:</h4>
             <div className="space-y-2 mt-1">
-              {data.sources.map((source, index) => (
-                // --- MODIFIED: Removed border for a cleaner look ---
+              {processedData.sources.map((source, index) => (
                 <div key={index} className="p-2 rounded-md text-xs bg-[#F6FAFD] text-[#1A3D63]">
                   <pre className="whitespace-pre-wrap break-all">{JSON.stringify(source, null, 2)}</pre>
                 </div>
@@ -218,8 +208,7 @@ const AIMessage: React.FC<{ data: AIMessageData; isStreaming?: boolean }> = ({ d
           </div>
         )}
 
-        {/* --- NEW LOADING BAR --- */}
-        {!data.answer && (
+        {!processedData.answer && (
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#B3CFE5]/30">
                 <style>{loadingBarStyle}</style>
                 <div className="h-full w-1/3 bg-[#4A7FA7] animate-indeterminate-progress"></div>
