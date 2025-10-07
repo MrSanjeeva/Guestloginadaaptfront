@@ -1,5 +1,3 @@
-// HomeAskAIScreen.tsx
-
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
 
@@ -291,10 +289,10 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
       if (!token) throw new Error("Authentication token not found.");
 
       const [userResponse, domainsResponse] = await Promise.all([
-        fetch('http://adaapt-production-alb-680487289.ap-south-1.elb.amazonaws.com/api/v1/auth/me', {
+        fetch('https://api.getadaapt.com/api/v1/auth/me', {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch('http://adaapt-production-alb-680487289.ap-south-1.elb.amazonaws.com/api/v1/knowledge-base/domains', {
+        fetch('https://api.getadaapt.com/api/v1/knowledge-base/domains', {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -310,16 +308,12 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
         .map(domain => domain.id);
 
       setSelectedDomains(allowedDomainIds);
-      setStreamStatus(`All ${allowedDomainIds.length} sources selected for global search.`);
-      setTimeout(() => setStreamStatus(""), 4000);
-
       setShowConnectionMessage(true);
       setTimeout(() => setShowConnectionMessage(false), 3000);
     } catch (error) {
       console.error("Failed to select all domains for global search:", error);
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
       setStreamStatus(`Error: Could not select all sources. ${errorMessage}`);
-      setTimeout(() => setStreamStatus(""), 5000);
     }
   };
 
@@ -347,7 +341,7 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
         return;
       }
       try {
-        const response = await fetch('http://adaapt-production-alb-680487289.ap-south-1.elb.amazonaws.com/api/v1/auth/me', {
+        const response = await fetch('https://api.getadaapt.com/api/v1/auth/me', {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -422,9 +416,8 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
       case 'node_complete':
       case 'tool_execution':
       case 'tool_result':
-      case 'progress_update': // --- UPDATED: Added new event handler case
+      case 'progress_update':
         if (data.message) {
-          setStreamStatus(data.message);
           updateThinkingStep(data.message);
         }
         if (eventType === 'start') setIsStreaming(true);
@@ -449,13 +442,10 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
           domains_searched: data.domains_searched,
           sources: data.sources,
         }));
-        setStreamStatus('Analysis complete!');
         setIsStreaming(false);
         break;
       case 'complete':
-        setStreamStatus('Ready for next question.');
         setIsStreaming(false);
-        setTimeout(() => setStreamStatus(''), 3000);
         break;
       case 'error':
         const errorMessage = `Error: ${data.message || 'An unknown error occurred.'}`;
@@ -463,7 +453,6 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
           thinkingSteps: undefined,
           error: errorMessage,
         }));
-        setStreamStatus(errorMessage);
         setIsStreaming(false);
         break;
     }
@@ -474,15 +463,12 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
 
     if (!userProfile?.id) {
       console.error("User profile or ID not loaded. Cannot submit query.");
-      setStreamStatus("Error: User profile not loaded. Please try again.");
-      setTimeout(() => setStreamStatus(''), 4000);
       return;
     }
 
     const userMessage: Message = { type: 'user', content: query };
     setMessages((prev) => [...prev, userMessage]);
     setIsSending(true);
-    setStreamStatus('Initializing stream...');
     const currentQuery = query;
     setQuery('');
     let currentMessageIndex: number | null = null;
@@ -503,7 +489,7 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
         ...(threadId && { thread_id: threadId }),
       };
 
-      const response = await fetch('http://adaapt-production-alb-680487289.ap-south-1.elb.amazonaws.com/api/v1/agentic/agentic-ask-stream', {
+      const response = await fetch('https://api.getadaapt.com/api/v1/agentic/agentic-ask-stream', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'text/event-stream' },
         body: JSON.stringify(requestBody),
@@ -547,7 +533,6 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
           return updatedMessages;
         });
       }
-      setStreamStatus('Error: Failed to connect to the server.');
     } finally {
       setIsSending(false);
       setIsStreaming(false);
@@ -577,13 +562,13 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth <= 1023) {
-        setIsSidebarCollapsed(true); // Default to collapsed on small screens
+        setIsSidebarCollapsed(true);
       } else {
-        setIsSidebarCollapsed(false); // Expand on larger screens
+        setIsSidebarCollapsed(false);
       }
     };
 
-    handleResize(); // Run on mount
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -634,7 +619,7 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
                 <button
                   onClick={() => {
                     setIsSidebarOpen(false);
-                    setIsSidebarCollapsed(true); // Ensure collapsed when closing on small screens
+                    setIsSidebarCollapsed(true);
                   }}
                   className="max-lg:block lg:hidden p-1 rounded-md hover:bg-gray-200/50"
                 >
@@ -773,7 +758,7 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
                       <button
                         onClick={() => {
                           setIsSidebarOpen(true);
-                          setIsSidebarCollapsed(true); // Start collapsed when opening
+                          setIsSidebarCollapsed(true);
                         }}
                         className="p-2 rounded-md hover:bg-slate-200/50 text-[#1e293b]"
                       >
@@ -894,9 +879,6 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
                             </div>
                           </div>
                         </div>
-                        {(isSending || streamStatus) && (
-                          <div className="text-center text-xs text-[#94a3b8] font-normal mt-2 h-4">{streamStatus}</div>
-                        )}
                         <AnimatePresence>
                           {!isChatting && (
                             <motion.div

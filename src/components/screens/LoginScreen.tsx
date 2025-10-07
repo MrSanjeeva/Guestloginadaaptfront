@@ -121,7 +121,7 @@ function LoginView({ onLoginSuccess, onGuestLogin, onSwitchToSignup }) {
     formData.append('client_secret', '');
 
     try {
-      const response = await fetch('http://adaapt-production-alb-680487289.ap-south-1.elb.amazonaws.com/api/v1/auth/login', {
+      const response = await fetch('https://api.getadaapt.com/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString(),
@@ -169,12 +169,12 @@ function LoginView({ onLoginSuccess, onGuestLogin, onSwitchToSignup }) {
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label htmlFor="email-login" className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
-          <input id="email-login" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required autoComplete="email" />
+          <input id="email-login" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm  transition" required autoComplete="email" />
         </div>
         <div>
           <label htmlFor="password-login" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
           <div className="relative">
-            <input id="password-login" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="block w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required autoComplete="current-password" />
+            <input id="password-login" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="block w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg shadow-sm  transition" required autoComplete="current-password" />
             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
              {showPassword ? (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" /></svg>
@@ -235,7 +235,7 @@ function SignupView({ onSignupSuccess, onSwitchToLogin }) {
     };
     
     try {
-        const response = await fetch('http://65.2.61.187:8000/api/v1/auth/register', {
+        const response = await fetch('https://api.getadaapt.com/api/v1/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
