@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Local Component Imports ---
 import { LeadershipInsights } from './LeadershipInsights';
@@ -63,102 +63,6 @@ interface UserProfile {
   allowed_domains: string[];
 }
 
-// --- NEW INTRO ANIMATION COMPONENT ---
-interface LampAnimationProps {
-  onComplete: () => void;
-}
-
-const LampAnimation: React.FC<LampAnimationProps> = ({ onComplete }) => {
-  const text = "What would you like to analyze today?";
-  const textRef = useRef<HTMLHeadingElement>(null);
-  const lampX = useMotionValue(0);
-
-  useEffect(() => {
-    const textElement = textRef.current;
-    if (!textElement) return;
-
-    const textWidth = textElement.offsetWidth;
-    const lampWidth = 60;
-
-    const startX = -textWidth / 2 + lampWidth / 3;
-    const endX = textWidth / 2;
-
-    lampX.set(startX);
-
-    const controls = animate(lampX, endX, {
-      duration: 4,
-      ease: 'easeInOut',
-      delay: 0.5,
-      onComplete: () => {
-        setTimeout(() => {
-          onComplete();
-        }, 800);
-      },
-    });
-
-    return () => controls.stop();
-  }, [lampX, onComplete]);
-
-  const lightOpacity = useTransform(lampX, (x) => {
-    const textWidth = textRef.current?.offsetWidth || 800;
-    const startX = -textWidth / 2;
-    const endX = textWidth / 2;
-
-    const domain = [startX, startX + 100, endX - 200, endX + 50];
-    const range = [0, 1, 1, 0];
-
-    if (x <= domain[0] || x >= domain[3]) return 0;
-    if (x > domain[0] && x < domain[1]) {
-      return range[0] + (range[1] - range[0]) * ((x - domain[0]) / (domain[1] - domain[0]));
-    }
-    if (x >= domain[1] && x <= domain[2]) {
-      return range[1];
-    }
-    if (x > domain[2] && x < domain[3]) {
-      return range[2] + (range[3] - range[2]) * ((x - domain[2]) / (domain[3] - domain[2]));
-    }
-    return 0;
-  });
-
-  const backgroundPosition = useTransform(lampX, (x) => {
-    const textWidth = textRef.current?.offsetWidth || 800;
-    const percentage = ((x + textWidth / 2) / textWidth) * 100;
-    return `${percentage}% 50%`;
-  });
-
-  return (
-    <motion.div
-      className="fixed inset-0 bg-[#0d1117] z-[9999] flex flex-col items-center justify-center overflow-hidden"
-      exit={{ opacity: 0, transition: { duration: 0.7, ease: 'easeInOut' } }}
-    >
-      <div className="relative flex flex-col items-center">
-        <motion.div style={{ x: lampX }} className="absolute -top-40">
-          <div className="relative flex flex-col items-center">
-            <div className="w-16 h-8 bg-gray-700 rounded-t-lg border-b-2 border-gray-600" />
-            <div className="w-2 h-4 bg-gray-600" />
-            <div className="absolute bottom-full left-1/2 w-0.5 h-40 bg-gray-800 -translate-x-1/2" />
-            <motion.div
-              className="absolute top-full w-[300px] h-[200px] bg-[radial-gradient(ellipse_at_top,_rgba(255,255,220,0.4)_0%,_transparent_70%)]"
-              style={{ opacity: lightOpacity }}
-            />
-          </div>
-        </motion.div>
-        <motion.h1
-          ref={textRef}
-          className="text-4xl font-extrabold font-figtree text-center relative px-4 text-transparent bg-clip-text bg-no-repeat"
-          style={{
-            backgroundImage: 'radial-gradient(circle at center, white 60%, transparent 120%)',
-            backgroundSize: '25% 200%',
-            backgroundPosition: backgroundPosition,
-          }}
-          aria-label={text}
-        >
-          {text}
-        </motion.h1>
-      </div>
-    </motion.div>
-  );
-};
 
 // --- STYLED SUB-COMPONENTS ---
 interface NavItemProps {
@@ -257,7 +161,6 @@ interface HomeAskAIScreenProps {
 }
 
 const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
-  const [isIntroAnimationPlaying, setIsIntroAnimationPlaying] = useState(true);
   const [query, setQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -583,12 +486,9 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
 
   return (
     <>
-      <AnimatePresence>
-        {isIntroAnimationPlaying && <LampAnimation onComplete={() => setIsIntroAnimationPlaying(false)} />}
-      </AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
-        animate={{ opacity: isIntroAnimationPlaying ? 0 : 1 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
         className="min-h-screen font-figtree font-medium text-[#1e293b] bg-[#f0f4f8] bg-[linear-gradient(to_bottom,#ffffff_0%,#e0f2fe_100%)]"
       >
@@ -825,7 +725,7 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
                               }}
                               placeholder="What are the best open opportunities by company size?"
                               rows={1}
-                              className="w-full pt-2 text-base text-[#1e293b] placeholder:text-[#94a3b8] border-none resize-none overflow-y-hidden focus:ring-0 bg-transparent flex-1"
+                              className="w-full pt-2 text-base text-[#1e293b] placeholder:text-[#94a3b8] border-none resize-none overflow-y-hidden bg-transparent flex-1"
                             />
                           </div>
                           <div className="flex justify-between items-center">

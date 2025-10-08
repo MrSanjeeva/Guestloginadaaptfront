@@ -17,7 +17,7 @@ const loadingBarStyle = `
     }
   }
   .animate-indeterminate-progress {
-    animation: indeterminate-progress 2s infinite ease-in-out;
+    animation: indeterminate-progress 0.5s infinite ease-in-out;
   }
 `;
 
