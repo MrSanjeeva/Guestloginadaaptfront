@@ -34,8 +34,8 @@ const UserMessage: React.FC<{ text: string }> = ({ text }) => (
       }}
       className="relative group"
     >
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl opacity-20 group-hover:opacity-30 blur transition duration-200" />
-      <div className="relative rounded-2xl rounded-br-md py-3 px-5 max-w-lg shadow-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-medium">
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-3xl opacity-20 group-hover:opacity-30 blur transition duration-200" />
+      <div className="relative rounded-3xl rounded-br-md py-2 px-4 max-w-lg shadow-lg bg-gray-50 text-black font-medium">
         {text}
       </div>
     </motion.div>
