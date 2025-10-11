@@ -710,7 +710,7 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
                             </motion.div>
                           )}
                         </AnimatePresence>
-                        <div className="flex flex-col p-3 gap-3 transition-all duration-300 ease-in-out bg-white/70 backdrop-blur-2xl border border-gray-300 rounded-[20px] shadow-[0_12px_32px_rgba(0,0,0,0.1)] focus-within:ring-4 focus-within:ring-blue-500/20">
+                        <div className="flex flex-col p-3 gap-3 transition-all duration-300 ease-in-out bg-white/70 border border-gray-300 backdrop-blur-2xl  rounded-[20px] shadow-[0_12px_32px_rgba(0,0,0,0.1)] ">
                           <div className="flex items-start w-full">
                             <HiSparkles color="#94a3b8" size={20} className="mt-[10px] mr-2 flex-shrink-0" />
                             <textarea
@@ -723,9 +723,9 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
                                   handleSubmit();
                                 }
                               }}
-                              placeholder="What are the best open opportunities by company size?"
+                              placeholder="What files do I have access to?"
                               rows={1}
-                              className="w-full pt-2 text-base text-[#1e293b] placeholder:text-[#94a3b8] border-none resize-none overflow-y-hidden bg-transparent flex-1"
+                              className="w-full pt-2 text-base text-[#1e293b] placeholder:text-[#94a3b8] border-none resize-none overflow-y-hidden bg-transparent flex-1 focus:outline-none"
                             />
                           </div>
                           <div className="flex justify-between items-center">

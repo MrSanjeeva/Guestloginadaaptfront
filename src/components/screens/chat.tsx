@@ -1,25 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import AutorenewIcon from '@mui/icons-material/Autorenew';
-import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
+import { motion, AnimatePresence } from 'framer-motion';
+import { BarChart, RefreshCw, Download, Sparkles, CheckCircle2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-
-// --- ADDED FOR LOADING BAR ANIMATION ---
-const loadingBarStyle = `
-  @keyframes indeterminate-progress {
-    0% {
-      transform: translateX(-100%);
-    }
-    100% {
-      transform: translateX(200%);
-    }
-  }
-  .animate-indeterminate-progress {
-    animation: indeterminate-progress 0.5s infinite ease-in-out;
-  }
-`;
 
 // Type definitions
 export interface AIMessageData {
@@ -38,38 +21,63 @@ export interface Message {
   content: string | AIMessageData;
 }
 
-// UserMessage component
+// UserMessage component with modern glassmorphism
 const UserMessage: React.FC<{ text: string }> = ({ text }) => (
   <div className="flex justify-end">
-    <div className="rounded-lg rounded-br-none py-3 px-4 max-w-lg shadow-md bg-[#4A7FA7] text-[#F6FAFD] font-figtree">
-      {text}
-    </div>
+    <motion.div
+      layout
+      initial={{ scale: 0.95, opacity: 0, x: 50 }}
+      animate={{ scale: 1, opacity: 1, x: 0 }}
+      transition={{
+        layout: { duration: 0.3, ease: "easeInOut" },
+        default: { duration: 0.3, ease: "easeOut" }
+      }}
+      className="relative group"
+    >
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl opacity-20 group-hover:opacity-30 blur transition duration-200" />
+      <div className="relative rounded-2xl rounded-br-md py-3 px-5 max-w-lg shadow-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-medium">
+        {text}
+      </div>
+    </motion.div>
   </div>
 );
 
-// AIMessage component - MODIFIED TO EXTRACT IFRAME URL
+// Typing indicator component
+const TypingIndicator: React.FC = () => (
+  <div className="flex gap-1.5 items-center">
+    {[0, 1, 2].map((i) => (
+      <motion.div
+        key={i}
+        className="w-2 h-2 bg-blue-500 rounded-full"
+        animate={{
+          y: [0, -8, 0],
+          opacity: [0.5, 1, 0.5]
+        }}
+        transition={{
+          duration: 0.6,
+          repeat: Infinity,
+          delay: i * 0.15
+        }}
+      />
+    ))}
+  </div>
+);
+
+// AIMessage component with modern design
+// AIMessage component with modern design
 const AIMessage: React.FC<{ data: AIMessageData; isStreaming?: boolean }> = ({ data, isStreaming = false }) => {
   const [isIframeLoading, setIsIframeLoading] = React.useState(true);
-
-  // --- START: MODIFICATION FOR DASHBOARD URL EXTRACTION ---
-  // Create a mutable copy to process and extract the dashboard URL
+  
   const processedData = { ...data };
-  // UPDATED REGEX: Matches both "View Interactive Dashboard" and "Click here to view your interactive dashboard"
   const dashboardUrlRegex = /\[(?:View Interactive Dashboard|Click here to view your interactive dashboard)\]\(([^)]+)\)/;
-
 
   if (processedData.answer && typeof processedData.answer === 'string') {
     const match = processedData.answer.match(dashboardUrlRegex);
-
     if (match && match[1]) {
-      // 1. Extract the URL and assign it to the dashboardUrl property
       processedData.dashboardUrl = match[1];
-
-      // 2. Remove the markdown link line from the answer to prevent displaying it twice
       processedData.answer = processedData.answer.replace(match[0], '').trim();
     }
   }
-  // --- END: MODIFICATION FOR DASHBOARD URL EXTRACTION ---
 
   const handleDownload = () => {
     if (!processedData.answer) return;
@@ -87,138 +95,172 @@ const AIMessage: React.FC<{ data: AIMessageData; isStreaming?: boolean }> = ({ d
   if (processedData.error) {
     return (
       <div className="flex justify-start">
-        <div className="rounded-lg rounded-bl-none py-3 px-4 max-w-lg shadow-md bg-red-100 text-red-800 border border-red-200 font-figtree">
-          <p className="font-medium">Error:</p>
-          <p>{processedData.error}</p>
-        </div>
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="rounded-2xl rounded-bl-md py-4 px-5 max-w-lg shadow-lg bg-red-50 border border-red-200"
+        >
+          <p className="font-semibold text-red-900 mb-1">Error</p>
+          <p className="text-red-700">{processedData.error}</p>
+        </motion.div>
       </div>
     );
   }
 
   const markdownComponents = {
-    h3: ({ node, ...props }) => <h3 className="text-xl font-semibold mb-3 text-[#0A1931]" {...props} />,
-    ol: ({ node, ...props }) => <ol className="list-decimal list-inside space-y-2 pl-2" {...props} />,
-    ul: ({ node, ...props }) => <ul className="list-disc list-inside space-y-2 pl-2" {...props} />,
-    li: ({ node, ...props }) => <li className="mb-1" {...props} />,
-    p: ({ node, ...props }) => <p className="mb-4 leading-relaxed" {...props} />,
-    strong: ({ node, ...props }) => <strong className="font-bold text-[#0A1931]" {...props} />,
+    h3: ({ node, ...props }) => <h3 className="text-xl font-bold mb-3 mt-6 text-gray-900 first:mt-0" {...props} />,
+    // 👇 **CHANGED LINES**
+    ol: ({ node, ...props }) => <ol className="list-decimal list-outside space-y-2 pl-5 my-4" {...props} />,
+    ul: ({ node, ...props }) => <ul className="list-disc list-outside space-y-2 pl-5 my-4" {...props} />,
+    // 👆 **CHANGED LINES**
+    li: ({ node, ...props }) => <li className="mb-1 text-gray-700" {...props} />,
+    p: ({ node, ...props }) => <p className="mb-4 leading-relaxed text-gray-700" {...props} />,
+    strong: ({ node, ...props }) => <strong className="font-bold text-gray-900" {...props} />,
     code: ({ node, inline, ...props }) =>
       inline ? (
-        <code className="bg-[#B3CFE5]/50 text-[#0A1931] rounded px-1.5 py-1 text-sm font-figtree" {...props} />
+        <code className="bg-gray-100 text-gray-800 rounded-md px-2 py-0.5 text-sm font-mono" {...props} />
       ) : (
-        <pre className="bg-[#F6FAFD] p-3 rounded-md overflow-x-auto text-sm" {...props} />
+        <pre className="bg-gray-900 text-gray-100 p-4 rounded-xl overflow-x-auto text-sm my-4 font-mono" {...props} />
       ),
     table: ({ node, ...props }) => (
-      <div className="my-4 overflow-hidden rounded-lg border border-[#B3CFE5]/50">
+      <div className="my-6 overflow-hidden rounded-xl border border-gray-200 shadow-sm">
         <table className="min-w-full text-sm" {...props} />
       </div>
     ),
-    thead: ({ node, ...props }) => <thead className="bg-[#F6FAFD]" {...props} />,
-    tbody: ({ node, ...props }) => <tbody className="divide-y divide-[#B3CFE5]/50 bg-white" {...props} />,
-    tr: ({ node, ...props }) => <tr className="hover:bg-[#F6FAFD]/70" {...props} />,
+    thead: ({ node, ...props }) => <thead className="bg-gray-50" {...props} />,
+    tbody: ({ node, ...props }) => <tbody className="divide-y divide-gray-200 bg-white" {...props} />,
+    tr: ({ node, ...props }) => <tr className="hover:bg-gray-50 transition-colors" {...props} />,
     th: ({ node, ...props }) => (
-      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#1A3D63]" {...props} />
+      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700" {...props} />
     ),
-    td: ({ node, ...props }) => <td className="px-4 py-3 align-middle text-[#1A3D63]" {...props} />,
+    td: ({ node, ...props }) => <td className="px-6 py-4 align-middle text-gray-700" {...props} />,
   };
 
   return (
     <div className="flex justify-start">
-      <div className="relative max-w-5xl w-full space-y-4 text-[#1A3D63] font-figtree">
-        {processedData.answer ? (
-          <div className="prose prose-sm max-w-none">
-            <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>
-              {processedData.answer}
-            </ReactMarkdown>
-          </div>
-        ) : (
-          <div>
-            <p className="font-mono text-sm text-[#4A7FA7] truncate">
-              {processedData.thinkingSteps || 'Thinking...'}
-            </p>
-          </div>
-        )}
+      <motion.div
+        layout
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{
+          layout: { duration: 0.3, ease: "easeInOut" },
+          default: { duration: 0.3 }
+        }}
+        className="relative max-w-5xl w-full"
+      >
+        <div className="rounded-2xl rounded-bl-md py-4 px-5 shadow-lg bg-white border border-gray-200 space-y-4">
+          {processedData.answer ? (
+            <div className="prose prose-sm max-w-none">
+              <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>
+                {processedData.answer}
+              </ReactMarkdown>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 text-gray-600">
+              <TypingIndicator />
+              <span className="text-sm font-medium">
+                {processedData.thinkingSteps || 'Thinking...'}
+              </span>
+            </div>
+          )}
 
-        {processedData.dashboardUrl && (
-          <div className="relative rounded-lg overflow-hidden h-[500px] mt-4 border border-gray-200">
-            {isIframeLoading && (
-              <div className="absolute inset-0 flex items-center justify-center text-sm text-[#4A7FA7]">
-                <AutorenewIcon className="animate-spin mr-2" />
-                Loading interactive dashboard...
-              </div>
-            )}
-            <iframe
-              src={processedData.dashboardUrl}
-              title="Embedded Interactive Dashboard"
-              className={`w-full h-full border-0 transition-opacity duration-300 ${isIframeLoading ? 'opacity-0' : 'opacity-100'}`}
-              sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-              allow="fullscreen"
-              onLoad={() => setIsIframeLoading(false)}
-            />
-          </div>
-        )}
+          {processedData.dashboardUrl && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="relative rounded-xl overflow-hidden h-[500px] border border-gray-200 shadow-inner bg-gray-50"
+            >
+              <AnimatePresence>
+                {isIframeLoading && (
+                  <motion.div
+                    initial={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 flex items-center justify-center bg-white z-10"
+                  >
+                    <div className="flex items-center gap-3 text-blue-600">
+                      <RefreshCw className="animate-spin" size={20} />
+                      <span className="text-sm font-medium">Loading dashboard...</span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <iframe
+                src={processedData.dashboardUrl}
+                title="Interactive Dashboard"
+                className="w-full h-full border-0"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                allow="fullscreen"
+                onLoad={() => setIsIframeLoading(false)}
+              />
+            </motion.div>
+          )}
 
-        {(processedData.answer || processedData.dashboardUrl) && (
-            <div className="mt-4 flex flex-wrap items-center gap-3">
+          {(processedData.answer || processedData.dashboardUrl) && (
+            <div className="flex flex-wrap items-center gap-2 pt-2">
               {processedData.dashboardUrl && (
                 <a
                   href={processedData.dashboardUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 font-semibold py-2 px-3 rounded-lg text-xs transition-colors bg-[#B3CFE5] text-[#0A1931] hover:bg-[#4A7FA7] hover:text-[#F6FAFD]"
+                  className="inline-flex border border-gray-200 items-center gap-2 font-semibold py-2.5 px-4 rounded-3xl text-sm transition-all bg-gradient-to-r from-blue-700 to-indigo-800 text-black hover:shadow-lg hover:scale-105 active:scale-95"
                 >
-                  <BarChartIcon sx={{ fontSize: 16 }} />
-                  Open Dashboard in New Tab
+                  <BarChart size={16} />
+                  Open Dashboard
                 </a>
               )}
               {processedData.answer && (
                 <button
                   onClick={handleDownload}
-                  className="inline-flex items-center gap-2 font-semibold py-2 px-3 rounded-lg text-xs transition-colors bg-white text-[#4A7FA7] border border-[#B3CFE5] hover:bg-[#F6FAFD]"
+                  className="inline-flex items-center gap-2 font-semibold py-2.5 px-4 rounded-3xl text-sm transition-all border border-gray-200 text-black hover:bg-gray-200 hover:shadow-md active:scale-95"
                 >
-                  <FileDownloadOutlinedIcon sx={{ fontSize: 16 }} />
-                  Download Response
+                  <Download size={16} />
+                  Download
                 </button>
               )}
             </div>
-        )}
+          )}
 
-        {processedData.domains_searched && processedData.domains_searched.length > 0 && (
-          <div className="pt-2">
-            <h4 className="font-semibold text-sm text-[#1A3D63]">Domains Searched:</h4>
-            <div className="flex flex-wrap gap-2 mt-1">
-              {processedData.domains_searched.map((domain) => (
-                <span key={domain} className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-[#B3CFE5]/50 text-[#1A3D63]">
-                  {domain}
-                </span>
-              ))}
+          {processedData.domains_searched && processedData.domains_searched.length > 0 && (
+            <div className="pt-3 border-t border-gray-100">
+              <h4 className="font-semibold text-sm text-gray-700 mb-2 flex items-center gap-2">
+                <CheckCircle2 size={16} className="text-green-600" />
+                Sources Searched
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {processedData.domains_searched.map((domain) => (
+                  <span
+                    key={domain}
+                    className="text-xs font-medium px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200"
+                  >
+                    {domain}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-        {processedData.sources && processedData.sources.length > 0 && (
-          <div className="pt-2">
-            <h4 className="font-semibold text-sm text-[#1A3D63]">Sources:</h4>
-            <div className="space-y-2 mt-1">
-              {processedData.sources.map((source, index) => (
-                <div key={index} className="p-2 rounded-md text-xs bg-[#F6FAFD] text-[#1A3D63]">
-                  <pre className="whitespace-pre-wrap break-all">{JSON.stringify(source, null, 2)}</pre>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+          )}
 
-        {!processedData.answer && (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#B3CFE5]/30">
-                <style>{loadingBarStyle}</style>
-                <div className="h-full w-1/3 bg-[#4A7FA7] animate-indeterminate-progress"></div>
+          {!processedData.answer && (
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-100 rounded-b-2xl overflow-hidden">
+              <motion.div
+                className="h-full bg-gradient-to-r from-blue-600 to-indigo-600"
+                animate={{
+                  x: ['-100%', '200%']
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: 'easeInOut'
+                }}
+                style={{ width: '33%' }}
+              />
             </div>
-        )}
-      </div>
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 };
-
 // ChatScreen component
 interface ChatScreenProps {
   messages: Message[];
@@ -235,29 +277,37 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ messages, isSending }) =
   return (
     <motion.div
       key="chat-view"
-      className="h-full relative"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      className="h-full relative bg-gradient-to-b from-gray-50 to-white"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
     >
-      <div className="h-full overflow-y-auto space-y-6 pr-2">
-        {messages.map((msg, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            {msg.type === 'user' ? (
-              <UserMessage text={msg.content as string} />
-            ) : (
-              <AIMessage
-                data={typeof msg.content === 'string' ? { answer: msg.content } : msg.content as AIMessageData}
-                isStreaming={isSending && index === messages.length - 1}
-              />
-            )}
-          </motion.div>
-        ))}
+      <div className="h-full overflow-y-auto space-y-6 px-4 py-6">
+        <AnimatePresence initial={false}>
+          {messages.map((msg, index) => (
+            <motion.div
+              key={index}
+              layout
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{
+                layout: { duration: 0.3, ease: "easeInOut" },
+                opacity: { duration: 0.3 },
+                y: { duration: 0.3 }
+              }}
+            >
+              {msg.type === 'user' ? (
+                <UserMessage text={msg.content as string} />
+              ) : (
+                <AIMessage
+                  data={typeof msg.content === 'string' ? { answer: msg.content } : msg.content as AIMessageData}
+                  isStreaming={isSending && index === messages.length - 1}
+                />
+              )}
+            </motion.div>
+          ))}
+        </AnimatePresence>
         <div ref={chatEndRef} />
       </div>
     </motion.div>

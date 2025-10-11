@@ -145,9 +145,9 @@ const AdministrationScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       allowed_domains: allowedDomains,
       is_superuser: isSuperuser,
       is_active: true,
-      is_verified: false,
+      is_verified: true,
     };
-
+    console.log("Registering user with data:", requestBody);
     try {
       await apiClient.post('/auth/register', requestBody);
       setMessage({ type: 'success', text: 'User registered successfully!' });
