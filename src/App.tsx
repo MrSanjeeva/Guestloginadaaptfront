@@ -104,7 +104,8 @@ export default function App() {
         setOnboardingStep('complete');
       } else {
         setIsFirstLogin(true);
-        setOnboardingStep('quickstart');
+        // ✅ UPDATED: Skip quickstart on page reload if setup wasn't complete
+        setOnboardingStep('home-ask-ai');
       }
     }
 
@@ -158,10 +159,9 @@ export default function App() {
 
       setPrototypeVars((prev) => ({ ...prev, is_admin: isSuperuser }));
       setIsAuthenticated(true);
-
-      if (isSuperuser && isFirstLogin) {
-        transitionToStep('quickstart', 'right', 'Setting up your workspace...');
-      } else if (!isSuperuser && isFirstLogin) {
+      
+      // ✅ UPDATED: Simplified logic to skip QuickStart for all users.
+      if (isFirstLogin) {
         localStorage.setItem('hasCompletedSetup', 'true');
         transitionToStep('home-ask-ai', 'right', 'Preparing your workspace...');
       } else {
@@ -175,21 +175,20 @@ export default function App() {
     }
   };
 
-  // ✅ UPDATED: Guest login via API with fixed credentials
   const handleGuestLogin = async () => {
     setIsLoading(true);
     setLoadingMessage('Signing in as Guest...');
 
     const formData = new URLSearchParams();
     formData.append('grant_type', 'password');
-    formData.append('username', 'guestuser@adaapt.ai');
-    formData.append('password', 'Devesh1234');
+    formData.append('username', 'guest@adaapt.ai');
+    formData.append('password', 'guest1234');
     formData.append('scope', '');
     formData.append('client_id', '');
     formData.append('client_secret', '');
 
     try {
-      const response = await fetch('http://65.2.61.187:8000/api/v1/auth/login', {
+      const response = await fetch('https://api.getadaapt.com/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString(),
@@ -202,13 +201,11 @@ export default function App() {
         const expiryTime = new Date().getTime() + data.expires_in * 1000;
         localStorage.setItem('tokenExpiry', expiryTime.toString());
 
-        // Set Authorization header
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.access_token}`;
 
         setIsAuthenticated(true);
         localStorage.setItem('hasCompletedSetup', 'true');
-
-        // ✅ Go straight to Ask AI (skip onboarding, even if superuser)
+        
         setOnboardingStep('complete');
         setCurrentScreen('dashboard');
 
@@ -355,7 +352,7 @@ export default function App() {
               <AuthScreen onLogin={handleLogin} onGuestLogin={handleGuestLogin} inviteToken={inviteToken} />
             </ScreenTransition>
           );
-        case 'quickstart':
+        case 'quickstart': // This case is now effectively unused but kept for structural integrity
           return (
             <ScreenTransition isVisible={!isLoading} direction={direction}>
               <QuickStartScreen onSetupComplete={handleSetupFinished} onLogout={handleLogout} />
