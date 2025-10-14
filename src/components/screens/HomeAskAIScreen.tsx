@@ -16,6 +16,7 @@ import ViewProfileModal from './ViewProfile';
 import {
   FiTrendingUp,
   FiCompass,
+  FiCheck ,
   FiMessageSquare,
   FiShield,
   FiX,
@@ -490,7 +491,7 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
-        className="min-h-screen font-figtree font-medium text-[#1e293b] bg-[#f0f4f8] bg-[linear-gradient(to_bottom,#ffffff_0%,#e0f2fe_100%)]"
+        className="min-h-screen font-figtree font-medium text-black bg-gray-100"
       >
         <div className="flex h-screen p-4 gap-4">
           {isSidebarOpen && (
@@ -679,7 +680,7 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
                                   </div>
                                   <p className="text-lg font-semibold text-[#64748b]">{greeting.text}</p>
                                 </div>
-                                <h1 className="text-4xl font-extrabold font-figtree text-[#1e293b] mt-1 h-[50px] md:h-auto">
+                                <h1 className="text-4xl font-extrabold font-figtree text-black mt-1 h-[50px] md:h-auto">
                                   What would you like to analyze today?
                                 </h1>
                                 <p className="mt-2 text-[#64748b]">Start typing your query below or try a suggestion</p>
@@ -746,9 +747,10 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
                                 <FiChevronDown size={15} />
                               </button>
                               {showConnectionMessage && (
-                                <div className="text-sm font-semibold ml-2 flex items-center gap-1 text-[#34d399]">
-                                  ✔️ <span className="hidden md:inline">Dataset connected</span>
-                                </div>
+                               <div className="text-sm font-semibold ml-2 flex items-center gap-1 text-[#34d399]">
+  <FiCheck size={18} /> {/* Using the FiCheck icon */}
+  <span className="hidden md:inline">Dataset connected</span>
+</div>
                               )}
                             </div>
                             <div className="flex items-center gap-2">
