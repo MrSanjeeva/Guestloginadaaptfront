@@ -16,7 +16,7 @@ import ViewProfileModal from './ViewProfile';
 import {
   FiTrendingUp,
   FiCompass,
-  FiCheck ,
+  FiCheck,
   FiMessageSquare,
   FiShield,
   FiX,
@@ -293,9 +293,11 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
     setCurrentScreen('home');
   };
 
+  // --- UPDATED SSE HANDLER ---
   const handleStreamEvent = (event: { event: string; data: any }, currentMessageIndex: number | null) => {
     const { event: eventType, data } = event;
     if (currentMessageIndex === null) return;
+
     const updateMessage = (updater: (prevContent: AIMessageData) => AIMessageData) => {
       setMessages((prev) => {
         const updatedMessages = [...prev];
@@ -307,6 +309,7 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
         return updatedMessages;
       });
     };
+
     const updateThinkingStep = (message: string) => {
       if (!message) return;
       updateMessage(currentContent => ({
@@ -314,31 +317,51 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
         thinkingSteps: message,
       }));
     };
+
     switch (eventType) {
       case 'start':
+        updateThinkingStep("🚀 Initializing AI agent...");
+        setIsStreaming(true);
+        break;
+
       case 'status':
+        updateThinkingStep("🔗 Establishing secure connection...");
+        if (data.thread_id && !threadId) setThreadId(data.thread_id);
+        break;
+
       case 'node_complete':
+        updateThinkingStep("🤔 Analyzing your query structure...");
+        break;
+
       case 'tool_execution':
+        updateThinkingStep("🔎 Searching connected data sources...");
+        break;
+
       case 'tool_result':
+        updateThinkingStep("📊 Interpreting search results...");
+        break;
+
       case 'progress_update':
-        if (data.message) {
-          updateThinkingStep(data.message);
-        }
-        if (eventType === 'start') setIsStreaming(true);
-        if (eventType === 'status' && data.thread_id && !threadId) setThreadId(data.thread_id);
+        updateThinkingStep("✨ Generating insights...");
         break;
+
       case 'chunk':
+        // This event can be used to stream the final answer token by token if needed.
+        // For now, we are handling the full answer in the 'final' event.
         break;
+
       case 'final':
+        // As requested, use the message from the backend for the 'final' event.
         let finalAnswer = '';
         if (Array.isArray(data.answer) && data.answer.length > 0) {
           finalAnswer = data.answer.map((item: any) => (item.text ? item.text : '')).join('\n\n');
         } else if (typeof data.answer === 'string') {
           finalAnswer = data.answer;
         }
+
         updateMessage(currentContent => ({
           ...currentContent,
-          thinkingSteps: undefined,
+          thinkingSteps: undefined, // Clear the thinking steps
           answer: finalAnswer,
           steps: data.steps,
           thread_id: data.thread_id,
@@ -348,9 +371,12 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
         }));
         setIsStreaming(false);
         break;
+
       case 'complete':
+        // This event signifies the end of the stream. The final message is handled above.
         setIsStreaming(false);
         break;
+
       case 'error':
         const errorMessage = `Error: ${data.message || 'An unknown error occurred.'}`;
         updateMessage(() => ({
@@ -359,8 +385,13 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
         }));
         setIsStreaming(false);
         break;
+
+      default:
+        console.log(`[SSE] Received unhandled event: ${eventType}`);
+        break;
     }
   };
+
 
   const handleSubmit = async () => {
     if (!query.trim() || isSending) return;
@@ -711,7 +742,7 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
                             </motion.div>
                           )}
                         </AnimatePresence>
-                        <div className="flex flex-col p-3 gap-3 transition-all duration-300 ease-in-out bg-white/70 border border-gray-300 backdrop-blur-2xl  rounded-[20px] shadow-[0_12px_32px_rgba(0,0,0,0.1)] ">
+                        <div className="flex flex-col p-3 gap-3 transition-all duration-300 ease-in-out bg-white/70 border border-gray-300 backdrop-blur-2xl rounded-[20px] shadow-[0_12px_32px_rgba(0,0,0,0.1)] ">
                           <div className="flex items-start w-full">
                             <HiSparkles color="#94a3b8" size={20} className="mt-[10px] mr-2 flex-shrink-0" />
                             <textarea
@@ -748,8 +779,8 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
                               </button>
                               {showConnectionMessage && (
                                <div className="text-sm font-semibold ml-2 flex items-center gap-1 text-[#34d399]">
-  <FiCheck size={18} /> {/* Using the FiCheck icon */}
-  <span className="hidden md:inline">Dataset connected</span>
+ <FiCheck size={18} /> {/* Using the FiCheck icon */}
+ <span className="hidden md:inline">Dataset connected</span>
 </div>
                               )}
                             </div>
@@ -760,7 +791,7 @@ const HomeAskAIScreen: React.FC<HomeAskAIScreenProps> = ({ onLogout }) => {
                                 aria-label="Attach file"
                               >
                                 <FiPaperclip size={15} />
-                                <span>Attach</span>
+                                <span>Upload to knowledge-base</span>
                               </button>
                               <button
                                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-xl border border-gray-200/70 bg-gray-50/80 text-[#64748b] hover:bg-gray-100 transition-all duration-300 ease-in-out"

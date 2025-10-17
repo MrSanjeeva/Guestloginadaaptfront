@@ -64,7 +64,6 @@ const TypingIndicator: React.FC = () => (
 );
 
 // AIMessage component with modern design
-// AIMessage component with modern design
 const AIMessage: React.FC<{ data: AIMessageData; isStreaming?: boolean }> = ({ data, isStreaming = false }) => {
   const [isIframeLoading, setIsIframeLoading] = React.useState(true);
   
@@ -109,13 +108,13 @@ const AIMessage: React.FC<{ data: AIMessageData; isStreaming?: boolean }> = ({ d
 
   const markdownComponents = {
     h3: ({ node, ...props }) => <h3 className="text-xl font-bold mb-3 mt-6 text-gray-900 first:mt-0" {...props} />,
-    // 👇 **CHANGED LINES**
     ol: ({ node, ...props }) => <ol className="list-decimal list-outside space-y-2 pl-5 my-4" {...props} />,
     ul: ({ node, ...props }) => <ul className="list-disc list-outside space-y-2 pl-5 my-4" {...props} />,
-    // 👆 **CHANGED LINES**
     li: ({ node, ...props }) => <li className="mb-1 text-gray-700" {...props} />,
     p: ({ node, ...props }) => <p className="mb-4 leading-relaxed text-gray-700" {...props} />,
     strong: ({ node, ...props }) => <strong className="font-bold text-gray-900" {...props} />,
+    // 👇 **MODIFIED LINE: Links will now open in a new tab**
+    a: ({ node, ...props }) => <a target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium hover:underline" {...props} />,
     code: ({ node, inline, ...props }) =>
       inline ? (
         <code className="bg-gray-100 text-gray-800 rounded-md px-2 py-0.5 text-sm font-mono" {...props} />

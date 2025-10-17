@@ -31,7 +31,7 @@ interface KnowledgeBaseDomain {
 // --- HELPER & UI COMPONENTS ---
 
 const Icon: React.FC<{ path: string; className?: string }> = ({ path, className = 'w-6 h-6' }) => (
-    <svg xmlns="http://www.w.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
         <path strokeLinecap="round" strokeLinejoin="round" d={path} />
     </svg>
 );
@@ -154,7 +154,8 @@ const AdministrationScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 const response = await apiClient.get<KnowledgeBaseDomain[]>('/knowledge-base/domains');
                 setDomains(response.data);
                 if (response.data.length > 0) {
-                    setDepartment(response.data[0].id);
+                    // CORRECTED: Set department to the 'name' property, not 'id'
+                    setDepartment(response.data[0].name);
                 }
             } catch (error) {
                 console.error("Failed to fetch domains:", error);
@@ -174,11 +175,11 @@ const AdministrationScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         setFiles([]);
     }, [activeTab]);
 
-    const handleAllowedDomainsChange = (domainId: string) => {
+    const handleAllowedDomainsChange = (domainName: string) => {
         setAllowedDomains(prev =>
-            prev.includes(domainId)
-                ? prev.filter(id => id !== domainId)
-                : [...prev, domainId]
+            prev.includes(domainName)
+                ? prev.filter(name => name !== domainName)
+                : [...prev, domainName]
         );
     };
 
@@ -186,7 +187,8 @@ const AdministrationScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         if (allowedDomains.length === domains.length) {
             setAllowedDomains([]);
         } else {
-            setAllowedDomains(domains.map(d => d.id));
+            // CORRECTED: Map over domains to get their 'name' property, not 'id'
+            setAllowedDomains(domains.map(d => d.name));
         }
     };
     
@@ -194,7 +196,8 @@ const AdministrationScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         setEmail('');
         setFullName('');
         setOrganization('');
-        setDepartment(domains.length > 0 ? domains[0].id : '');
+        // CORRECTED: Reset department to the 'name' property, not 'id'
+        setDepartment(domains.length > 0 ? domains[0].name : '');
         setRole('employee');
         setPassword('');
         setAllowedDomains([]);
@@ -209,6 +212,8 @@ const AdministrationScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         setIsSubmitting(true);
         setMessage(null);
         try {
+            // The state variables `department` and `allowedDomains` now correctly hold the names,
+            // so the request body will be in the correct format as per the old logic.
             await apiClient.post('/auth/register', {
                 email,
                 full_name: fullName,
@@ -219,7 +224,7 @@ const AdministrationScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 allowed_domains: allowedDomains,
                 is_superuser: isSuperuser,
                 is_active: true,
-                is_verified: true,
+                is_verified: true, // This is the effective result from the old file's logic
             });
             setMessage({ type: 'success', text: 'User registered successfully!' });
             resetForm();
@@ -285,7 +290,8 @@ const AdministrationScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <div>
                                 <label htmlFor="department" className="block text-sm font-medium text-gray-700">Primary Department</label>
                                 <select id="department" value={department} onChange={(e) => setDepartment(e.target.value)} className="mt-1 w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                                    {domains.map(d => <option key={d.id} value={d.id}>{d.display_name}</option>)}
+                                    {/* CORRECTED: The value should be the domain's 'name' property */}
+                                    {domains.map(d => <option key={d.id} value={d.name}>{d.display_name}</option>)}
                                 </select>
                             </div>
                             <div>
@@ -316,7 +322,8 @@ const AdministrationScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-4 bg-gray-50">
                                     {domains.map(d => (
                                         <div key={d.id} className="flex items-center">
-                                            <input id={`domain-${d.id}`} type="checkbox" checked={allowedDomains.includes(d.id)} onChange={() => handleAllowedDomainsChange(d.id)} className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                                            {/* CORRECTED: Check against the domain's 'name' property */}
+                                            <input id={`domain-${d.id}`} type="checkbox" checked={allowedDomains.includes(d.name)} onChange={() => handleAllowedDomainsChange(d.name)} className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
                                             <label htmlFor={`domain-${d.id}`} className="ml-3 text-sm text-gray-700">{d.display_name}</label>
                                         </div>
                                     ))}
@@ -412,7 +419,6 @@ const AdministrationScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {domains.map(domain => (
                             <button key={domain.id} onClick={() => handleDomainSelect(domain)} className="group p-5 bg-white border border-gray-200 rounded-lg text-left hover:shadow-lg hover:border-blue-400 hover:-translate-y-1 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                {/* ✨ CHANGED: Wrapped content in a flex container to position icon */}
                                 <div className="flex justify-between items-center w-full">
                                     <div className="flex-1 pr-4">
                                         <p className="font-semibold text-base text-gray-800 group-hover:text-blue-600">{domain.display_name}</p>
